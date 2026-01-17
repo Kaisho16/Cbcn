@@ -1,0 +1,54 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "title": "CBCN 17th Anniversary",
+      "date": "2026-01-26",
+      "time": "10:00 AM",
+      "location": "CBCN Church Grounds",
+      "description": "Join us as we celebrate 17 years of God's faithfulness to our church family. Special worship service, fellowship meal, and thanksgiving.",
+      "category": "celebration",
+      "image": "cbcn-family.jpg"
+    },
+    {
+      "id": 2,
+      "title": "Love Month Seminar",
+      "date": "2026-02-22",
+      "time": "2:00 PM",
+      "location": "CBCN Fellowship Hall",
+      "description": "A special seminar on building Christ-centered relationships for couples and singles.",
+      "category": "seminar",
+      "image": null
+    },
+    {
+      "id": 3,
+      "title": "Easter Sunday Service",
+      "date": "2026-04-05",
+      "time": "10:00 AM",
+      "location": "CBCN Church Grounds",
+      "description": "Celebrate the resurrection of our Lord Jesus Christ with special music and message.",
+      "category": "worship",
+      "image": null
+    },
+    {
+      "id": 4,
+      "title": "Youth Summer Camp",
+      "date": "2026-05-15",
+      "time": "8:00 AM",
+      "location": "Camp Venue TBA",
+      "description": "Annual summer camp for our youth ministry. Three days of fellowship, games, and spiritual growth.",
+      "category": "youth",
+      "image": null
+    },
+    {
+      "id": 5,
+      "title": "Vacation Bible School",
+      "date": "2026-06-01",
+      "time": "9:00 AM",
+      "location": "CBCN Church Grounds",
+      "description": "A week of fun Bible stories, games, and crafts for children ages 4-12.",
+      "category": "children",
+      "image": null
+    }
+  ]
+}

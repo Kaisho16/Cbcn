@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | Caloocan Bible Church North</title>
+    <meta name="description" content="Get in touch with Caloocan Bible Church North. Find our location, service times, and contact information.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="file.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Contact Page Specific Styles */
+        .contact-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-12);
+        }
+
+        @media (max-width: 992px) {
+            .contact-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .contact-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-10);
+            box-shadow: var(--shadow-md);
+        }
+
+        .contact-card h3 {
+            margin-bottom: var(--space-8);
+            font-size: 1.5rem;
+        }
+
+        /* Calendar Styles */
+        .calendar-widget {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .calendar-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            padding: var(--space-5) var(--space-6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .calendar-header h3 {
+            color: var(--white);
+            font-size: 1.1rem;
+            margin: 0;
+            font-family: var(--font-body);
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .calendar-nav button {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background var(--duration-fast) ease;
+            font-size: 0.85rem;
+        }
+
+        .calendar-nav button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .calendar-body {
+            padding: var(--space-4);
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: var(--space-2);
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            padding: var(--space-2);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--duration-fast) ease;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background: var(--gray-100);
+        }
+
+        .calendar-day.other-month {
+            color: var(--gray-300);
+        }
+
+        .calendar-day.today {
+            background: var(--primary-subtle);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .calendar-day.has-event {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .calendar-day.has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            width: 5px;
+            height: 5px;
+            background: var(--accent);
+            border-radius: var(--radius-full);
+        }
+
+        .calendar-events {
+            padding: var(--space-4) var(--space-6);
+            border-top: 1px solid var(--gray-100);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .calendar-event-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .calendar-event-item:last-child {
+            border-bottom: none;
+        }
+
+        .calendar-event-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: var(--radius-full);
+            flex-shrink: 0;
+        }
+
+        .calendar-event-info {
+            flex: 1;
+        }
+
+        .calendar-event-info strong {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .calendar-event-info span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Form Success Message */
+        .form-success {
+            background: var(--primary-subtle);
+            color: var(--primary);
+            padding: var(--space-4);
+            border-radius: var(--radius-md);
+            text-align: center;
+            margin-bottom: var(--space-6);
+            display: none;
+        }
+
+        .form-success.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="logo">
+                <img src="file.png" alt="CBCN Logo">
+            </a>
+            <button class="hamburger-menu" aria-label="Toggle menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="events.html">Events</a></li>
+                <li><a href="contact.html" class="active">Contact</a></li>
+                <li><a href="Giving.html" class="give-button">Give</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Hero -->
+    <header class="page-hero">
+        <div class="container">
+            <div class="page-hero-content">
+                <h1>Contact Us</h1>
+                <p>We'd love to hear from you. Reach out or visit us!</p>
+            </div>
+        </div>
+    </header>
+
+    <main id="main">
+        <!-- Contact Info & Map -->
+        <section class="section">
+            <div class="container">
+                <div class="contact-section">
+                    <!-- Contact Info -->
+                    <div class="fade-in">
+                        <h2 style="margin-bottom: var(--space-8);">Get in Touch</h2>
+                        
+                        <div class="contact-info-item">
+                            <div class="contact-info-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="contact-info-text">
+                                <h4>Address</h4>
+                                <p>Block 2, Lot 25 Doña Helen Subdivision<br>1422 Caloocan, Philippines</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-info-item">
+                            <div class="contact-info-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="contact-info-text">
+                                <h4>Phone</h4>
+                                <p><a href="tel:+639184218750">(+63) 918 421 8750</a></p>
+                            </div>
+                        </div>
+
+                        <div class="contact-info-item">
+                            <div class="contact-info-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="contact-info-text">
+                                <h4>Email</h4>
+                                <p><a href="mailto:cbcnorth27@gmail.com">cbcnorth27@gmail.com</a></p>
+                            </div>
+                        </div>
+
+                        <div class="contact-info-item">
+                            <div class="contact-info-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="contact-info-text">
+                                <h4>Service Times</h4>
+                                <p>
+                                    Sunday School: 8:30 AM<br>
+                                    Worship Service: 10:00 AM<br>
+                                    Prayer Meeting: Friday 7:00 PM
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Social Links -->
+                        <div style="margin-top: var(--space-8); display: flex; gap: var(--space-3);">
+                            <a href="https://www.facebook.com/CaloocanBibleChurchNorth" target="_blank" class="btn btn-secondary" style="padding: var(--space-3) var(--space-5);">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="https://www.youtube.com/@caloocanbiblechurchnorth5236" target="_blank" class="btn btn-secondary" style="padding: var(--space-3) var(--space-5);">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Map -->
+                    <div class="fade-in">
+                        <div class="map-container">
+                            <iframe 
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3859.3!2d120.99!3d14.75!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTTCsDQ1JzAwLjAiTiAxMjDCsDU5JzI0LjAiRQ!5e0!3m2!1sen!2sph!4v1234567890"
+                                allowfullscreen="" 
+                                loading="lazy" 
+                                referrerpolicy="no-referrer-when-downgrade"
+                                title="Church Location Map">
+                            </iframe>
+                        </div>
+                        <p style="margin-top: var(--space-4); font-size: 0.9rem; color: var(--text-muted);">
+                            <i class="fas fa-info-circle"></i> Located in Doña Helen Subdivision, Caloocan City
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Form Section -->
+        <section class="section" style="background: var(--bg-secondary);">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Send us a Message</h2>
+                    <p>We'd love to hear from you!</p>
+                </div>
+                <div style="max-width: 600px; margin: 0 auto;">
+                    <div class="contact-card fade-in">
+                        <div class="form-success" id="formSuccess">
+                            <i class="fas fa-check-circle"></i> Your message has been sent successfully!
+                        </div>
+
+                        <form action="https://formspree.io/f/mwpvkvbw" method="post" id="contactForm">
+                            <div class="form-group">
+                                <label for="name">Your Name</label>
+                                <input type="text" id="name" name="name" required autocomplete="name">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" required autocomplete="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="subject">Subject</label>
+                                <input type="text" id="subject" name="subject" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea id="message" name="message" rows="5" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                <i class="fas fa-paper-plane"></i> Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="file.png" alt="CBCN Logo">
+                    <p>A place to belong, believe, and become.</p>
+                </div>
+                <div>
+                    <h4>Quick Links</h4>
+                    <div class="footer-links">
+                        <a href="index.html">Home</a>
+                        <a href="about.html">About</a>
+                        <a href="events.html">Events</a>
+                        <a href="contact.html">Contact</a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Connect</h4>
+                    <div class="footer-links">
+                        <a href="https://www.facebook.com/CaloocanBibleChurchNorth" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
+                        <a href="https://www.youtube.com/@caloocanbiblechurchnorth5236" target="_blank"><i class="fab fa-youtube"></i> YouTube</a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Service Times</h4>
+                    <div class="footer-links">
+                        <span>Sunday School: 8:30 AM</span>
+                        <span>Worship: 10:00 AM</span>
+                        <span>Prayer (Fri): 7:00 PM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Caloocan Bible Church North. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>

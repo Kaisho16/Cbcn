@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events | Caloocan Bible Church North</title>
+    <meta name="description" content="Stay updated with upcoming events, gatherings, and special programs at Caloocan Bible Church North.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="file.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Events Page Specific Styles */
+        .events-container {
+            display: grid;
+            gap: var(--space-6);
+        }
+
+        .event-card-large {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-100);
+            transition: all var(--duration-base) var(--ease-out);
+        }
+
+        .event-card-large:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .event-card-content {
+            display: grid;
+            grid-template-columns: 120px 1fr auto;
+            gap: var(--space-6);
+            padding: var(--space-6);
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .event-card-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        .event-date-large {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            padding: var(--space-5);
+            border-radius: var(--radius-md);
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 105, 55, 0.25);
+        }
+
+        .event-date-large .month {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        .event-date-large .day {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            font-family: var(--font-display);
+        }
+
+        .event-date-large .year {
+            display: block;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: var(--space-1);
+        }
+
+        .event-details h3 {
+            font-size: 1.35rem;
+            margin-bottom: var(--space-2);
+        }
+
+        .event-details p {
+            margin-bottom: var(--space-3);
+            color: var(--text-secondary);
+        }
+
+        .event-tags {
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+        }
+
+        .event-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            background: var(--gray-100);
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .event-tag i {
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        .event-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        @media (max-width: 768px) {
+            .event-actions {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+
+        .category-filter {
+            display: flex;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: var(--space-10);
+        }
+
+        .filter-btn {
+            padding: var(--space-3) var(--space-6);
+            border-radius: var(--radius-full);
+            font-weight: 500;
+            font-size: 0.9rem;
+            background: var(--gray-100);
+            color: var(--text-secondary);
+            transition: all var(--duration-fast) ease;
+        }
+
+        .filter-btn:hover {
+            background: var(--gray-200);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .no-events {
+            text-align: center;
+            padding: var(--space-16);
+            color: var(--text-muted);
+        }
+
+        .no-events i {
+            font-size: 3rem;
+            margin-bottom: var(--space-4);
+            opacity: 0.5;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-16);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Past Events Styling */
+        .past-events {
+            opacity: 0.7;
+        }
+
+        .past-events .event-date-large {
+            background: var(--gray-400);
+        }
+
+        .past-event-badge {
+            display: inline-block;
+            padding: var(--space-1) var(--space-3);
+            background: var(--gray-200);
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: var(--radius-full);
+            text-transform: uppercase;
+            margin-left: var(--space-3);
+        }
+
+        /* Calendar Styles */
+        .calendar-wrapper {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .calendar-widget {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .calendar-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            padding: var(--space-5) var(--space-6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .calendar-header h3 {
+            color: var(--white);
+            font-size: 1.1rem;
+            margin: 0;
+            font-family: var(--font-body);
+            font-weight: 600;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .calendar-nav button {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background var(--duration-fast) ease;
+            font-size: 0.85rem;
+        }
+
+        .calendar-nav button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .calendar-body {
+            padding: var(--space-4);
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: var(--space-2);
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            padding: var(--space-2);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--duration-fast) ease;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background: var(--gray-100);
+        }
+
+        .calendar-day.other-month {
+            color: var(--gray-300);
+        }
+
+        .calendar-day.today {
+            background: var(--primary-subtle);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .calendar-day.has-event {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .calendar-day.has-event::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            width: 5px;
+            height: 5px;
+            background: var(--accent);
+            border-radius: var(--radius-full);
+        }
+
+        .calendar-events {
+            padding: var(--space-4) var(--space-6);
+            border-top: 1px solid var(--gray-100);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .calendar-event-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .calendar-event-item:last-child {
+            border-bottom: none;
+        }
+
+        .calendar-event-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: var(--radius-full);
+            flex-shrink: 0;
+        }
+
+        .calendar-event-info {
+            flex: 1;
+        }
+
+        .calendar-event-info strong {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .calendar-event-info span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="logo">
+                <img src="file.png" alt="CBCN Logo">
+            </a>
+            <button class="hamburger-menu" aria-label="Toggle menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="events.html" class="active">Events</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="Giving.html" class="give-button">Give</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Hero -->
+    <header class="page-hero">
+        <div class="container">
+            <div class="page-hero-content">
+                <h1>Events</h1>
+                <p>Stay updated with our upcoming gatherings and programs.</p>
+            </div>
+        </div>
+    </header>
+
+    <main id="main">
+        <!-- Events Section -->
+        <section class="section">
+            <div class="container">
+                <!-- Category Filters -->
+                <div class="category-filter" id="categoryFilter">
+                    <button class="filter-btn active" data-category="all">All Events</button>
+                    <button class="filter-btn" data-category="worship">Worship</button>
+                    <button class="filter-btn" data-category="seminar">Seminars</button>
+                    <button class="filter-btn" data-category="youth">Youth</button>
+                    <button class="filter-btn" data-category="children">Children</button>
+                    <button class="filter-btn" data-category="celebration">Celebrations</button>
+                </div>
+
+                <!-- Upcoming Events -->
+                <div class="section-header" style="margin-bottom: var(--space-8);">
+                    <h2>Upcoming Events</h2>
+                </div>
+
+                <div class="events-container" id="upcomingEvents">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+
+                <!-- Past Events Toggle -->
+                <div class="text-center" style="margin-top: var(--space-12);">
+                    <button class="btn btn-secondary" id="togglePastEvents">
+                        <i class="fas fa-history"></i> Show Past Events
+                    </button>
+                </div>
+
+                <!-- Past Events (Hidden by default) -->
+                <div id="pastEventsSection" style="display: none; margin-top: var(--space-12);">
+                    <div class="section-header" style="margin-bottom: var(--space-8);">
+                        <h2>Past Events</h2>
+                    </div>
+                    <div class="events-container past-events" id="pastEvents"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calendar Section -->
+        <section class="section" style="background: var(--bg-secondary);">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Event Calendar</h2>
+                    <p>View all events at a glance</p>
+                </div>
+                <div class="calendar-wrapper">
+                    <div class="calendar-widget" id="calendarWidget">
+                        <div class="calendar-header">
+                            <h3 id="calendarTitle">January 2026</h3>
+                            <div class="calendar-nav">
+                                <button id="prevMonth" aria-label="Previous month">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button id="nextMonth" aria-label="Next month">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="calendar-body">
+                            <div class="calendar-weekdays">
+                                <div class="calendar-weekday">Sun</div>
+                                <div class="calendar-weekday">Mon</div>
+                                <div class="calendar-weekday">Tue</div>
+                                <div class="calendar-weekday">Wed</div>
+                                <div class="calendar-weekday">Thu</div>
+                                <div class="calendar-weekday">Fri</div>
+                                <div class="calendar-weekday">Sat</div>
+                            </div>
+                            <div class="calendar-days" id="calendarDays"></div>
+                        </div>
+                        <div class="calendar-events" id="calendarEvents">
+                            <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center;">
+                                Click on a highlighted date to see event details
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="file.png" alt="CBCN Logo">
+                    <p>A place to belong, believe, and become.</p>
+                </div>
+                <div>
+                    <h4>Quick Links</h4>
+                    <div class="footer-links">
+                        <a href="index.html">Home</a>
+                        <a href="about.html">About</a>
+                        <a href="events.html">Events</a>
+                        <a href="contact.html">Contact</a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Connect</h4>
+                    <div class="footer-links">
+                        <a href="https://www.facebook.com/CaloocanBibleChurchNorth" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
+                        <a href="https://www.youtube.com/@caloocanbiblechurchnorth5236" target="_blank"><i class="fab fa-youtube"></i> YouTube</a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Service Times</h4>
+                    <div class="footer-links">
+                        <span>Sunday School: 8:30 AM</span>
+                        <span>Worship: 10:00 AM</span>
+                        <span>Prayer (Fri): 7:00 PM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Caloocan Bible Church North. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        // Events Page JavaScript
+        const upcomingContainer = document.getElementById('upcomingEvents');
+        const pastContainer = document.getElementById('pastEvents');
+        const pastSection = document.getElementById('pastEventsSection');
+        const togglePastBtn = document.getElementById('togglePastEvents');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        
+        let allEvents = [];
+        let currentFilter = 'all';
+
+        // Fetch events from JSON
+        async function loadEvents() {
+            try {
+                const response = await fetch('events.json');
+                const data = await response.json();
+                allEvents = data.events;
+                renderEvents();
+            } catch (error) {
+                console.error('Error loading events:', error);
+                upcomingContainer.innerHTML = `
+                    <div class="no-events">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Unable to load events. Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Render events based on filter
+        function renderEvents() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let filteredEvents = allEvents;
+            
+            if (currentFilter !== 'all') {
+                filteredEvents = allEvents.filter(e => e.category === currentFilter);
+            }
+
+            const upcoming = filteredEvents.filter(e => new Date(e.date) >= today);
+            const past = filteredEvents.filter(e => new Date(e.date) < today);
+
+            // Sort upcoming by date ascending
+            upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+            // Sort past by date descending
+            past.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Render upcoming
+            if (upcoming.length === 0) {
+                upcomingContainer.innerHTML = `
+                    <div class="no-events">
+                        <i class="fas fa-calendar-alt"></i>
+                        <p>No upcoming events at this time. Check back soon!</p>
+                    </div>
+                `;
+            } else {
+                upcomingContainer.innerHTML = upcoming.map(event => createEventCard(event)).join('');
+            }
+
+            // Render past
+            if (past.length === 0) {
+                pastContainer.innerHTML = `
+                    <div class="no-events">
+                        <i class="fas fa-calendar-check"></i>
+                        <p>No past events to show.</p>
+                    </div>
+                `;
+            } else {
+                pastContainer.innerHTML = past.map(event => createEventCard(event, true)).join('');
+            }
+        }
+
+        // Create event card HTML
+        function createEventCard(event, isPast = false) {
+            const date = new Date(event.date);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            return `
+                <div class="event-card-large fade-in visible">
+                    <div class="event-card-content">
+                        <div class="event-date-large">
+                            <span class="month">${months[date.getMonth()]}</span>
+                            <span class="day">${date.getDate()}</span>
+                            <span class="year">${date.getFullYear()}</span>
+                        </div>
+                        <div class="event-details">
+                            <h3>${event.title}${isPast ? '<span class="past-event-badge">Completed</span>' : ''}</h3>
+                            <p>${event.description}</p>
+                            <div class="event-tags">
+                                <span class="event-tag"><i class="fas fa-clock"></i> ${event.time}</span>
+                                <span class="event-tag"><i class="fas fa-map-marker-alt"></i> ${event.location}</span>
+                            </div>
+                        </div>
+                        ${!isPast ? `
+                        <div class="event-actions">
+                            <a href="contact.html" class="btn btn-primary btn-sm">Learn More</a>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Filter button click handler
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.category;
+                renderEvents();
+            });
+        });
+
+        // Toggle past events
+        togglePastBtn.addEventListener('click', () => {
+            const isHidden = pastSection.style.display === 'none';
+            pastSection.style.display = isHidden ? 'block' : 'none';
+            togglePastBtn.innerHTML = isHidden 
+                ? '<i class="fas fa-eye-slash"></i> Hide Past Events'
+                : '<i class="fas fa-history"></i> Show Past Events';
+        });
+
+        // Load events on page load
+        loadEvents();
+
+        // =====================
+        // Calendar Widget
+        // =====================
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
+        function renderCalendar() {
+            const calendarDays = document.getElementById('calendarDays');
+            const calendarTitle = document.getElementById('calendarTitle');
+            
+            if (!calendarDays || !calendarTitle) return;
+            
+            calendarTitle.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+            
+            let html = '';
+            
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                html += `<div class="calendar-day other-month">${daysInPrevMonth - i}</div>`;
+            }
+            
+            // Current month days
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const hasEvent = allEvents.some(e => e.date === dateStr);
+                const isToday = day === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
+                
+                let classes = 'calendar-day';
+                if (isToday) classes += ' today';
+                if (hasEvent) classes += ' has-event';
+                
+                html += `<div class="${classes}" data-date="${dateStr}">${day}</div>`;
+            }
+            
+            // Next month days
+            const totalCells = firstDay + daysInMonth;
+            const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let i = 1; i <= remaining; i++) {
+                html += `<div class="calendar-day other-month">${i}</div>`;
+            }
+            
+            calendarDays.innerHTML = html;
+            
+            // Add click listeners
+            document.querySelectorAll('.calendar-day[data-date]').forEach(day => {
+                day.addEventListener('click', () => showCalendarEvents(day.dataset.date));
+            });
+        }
+
+        function showCalendarEvents(dateStr) {
+            const calendarEvents = document.getElementById('calendarEvents');
+            const dayEvents = allEvents.filter(e => e.date === dateStr);
+            
+            if (dayEvents.length === 0) {
+                calendarEvents.innerHTML = `
+                    <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center;">
+                        No events on this day
+                    </p>
+                `;
+            } else {
+                calendarEvents.innerHTML = dayEvents.map(event => `
+                    <div class="calendar-event-item">
+                        <div class="calendar-event-dot"></div>
+                        <div class="calendar-event-info">
+                            <strong>${event.title}</strong>
+                            <span>${event.time} • ${event.location}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Calendar navigation
+        document.getElementById('prevMonth')?.addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        });
+
+        document.getElementById('nextMonth')?.addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+
+        // Initialize calendar after events load
+        const originalLoadEvents = loadEvents;
+        loadEvents = async function() {
+            await originalLoadEvents();
+            renderCalendar();
+        };
+        loadEvents();
+    </script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Give | Caloocan Bible Church North</title>
+    <meta name="description" content="Support the ministry of Caloocan Bible Church North through your tithes and offerings.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="file.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Giving Page Specific Styles */
+        .giving-intro {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto var(--space-16);
+        }
+
+        .giving-intro blockquote {
+            font-size: 1.15rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin: 0;
+            padding: var(--space-8) var(--space-6);
+            position: relative;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+        }
+
+        .giving-intro blockquote::before {
+            content: '"';
+            font-size: 4rem;
+            color: var(--primary);
+            opacity: 0.2;
+            font-family: Georgia, serif;
+            position: absolute;
+            top: 0;
+            left: var(--space-4);
+            line-height: 1;
+        }
+
+        .giving-intro cite {
+            display: block;
+            margin-top: var(--space-4);
+            font-size: 0.95rem;
+            font-style: normal;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .giving-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--space-8);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .giving-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-100);
+            transition: all var(--duration-base) var(--ease-out);
+        }
+
+        .giving-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .giving-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .giving-card-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-subtle), rgba(212, 168, 83, 0.1));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+
+        .giving-card-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .account-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-4);
+            padding: var(--space-4);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-top: var(--space-4);
+        }
+
+        .account-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .account-value {
+            font-family: var(--font-mono, monospace);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .copy-btn {
+            padding: var(--space-2) var(--space-4);
+            background: var(--primary);
+            color: var(--white);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all var(--duration-fast) ease;
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--gray-900);
+            color: var(--white);
+            padding: var(--space-4) var(--space-8);
+            border-radius: var(--radius-full);
+            box-shadow: var(--shadow-xl);
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast i {
+            margin-right: var(--space-2);
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="index.html" class="logo">
+                <img src="file.png" alt="CBCN Logo">
+            </a>
+            <button class="hamburger-menu" aria-label="Toggle menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="events.html">Events</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="Giving.html" class="give-button active">Give</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Hero -->
+    <header class="page-hero">
+        <div class="container">
+            <div class="page-hero-content">
+                <h1>Give</h1>
+                <p>Support the ministry and mission of CBCN.</p>
+            </div>
+        </div>
+    </header>
+
+    <main id="main">
+        <section class="section">
+            <div class="container">
+                <!-- Scripture Quote -->
+                <div class="giving-intro fade-in">
+                    <blockquote>
+                        Bring the whole tithe into the storehouse, that there may be food in my house. Test me in this," says the Lord Almighty, "and see if I will not throw open the floodgates of heaven and pour out so much blessing that there will not be room enough to store it.
+                        <cite>— Malachi 3:10</cite>
+                    </blockquote>
+                </div>
+
+                <!-- Giving Methods -->
+                <div class="giving-methods">
+                    <!-- GCash / Maya -->
+                    <div class="giving-card fade-in">
+                        <div class="giving-card-header">
+                            <div class="giving-card-icon">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <div>
+                                <h3>GCash / Maya</h3>
+                                <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">Send via mobile wallet</p>
+                            </div>
+                        </div>
+                        <p>You can send your tithes and offerings via GCash or Maya to the number below:</p>
+                        <div class="account-row">
+                            <div>
+                                <div class="account-label">Mobile Number</div>
+                                <div class="account-value" id="gcash-number">09278538560</div>
+                            </div>
+                            <button class="copy-btn" onclick="copyToClipboard('09278538560', this)">
+                                <i class="far fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bank Transfer -->
+                    <div class="giving-card fade-in">
+                        <div class="giving-card-header">
+                            <div class="giving-card-icon">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div>
+                                <h3>Bank Transfer</h3>
+                                <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">Metrobank</p>
+                            </div>
+                        </div>
+                        <p>You can also send your giving via direct bank transfer:</p>
+                        <div class="account-row">
+                            <div>
+                                <div class="account-label">Account Name</div>
+                                <div class="account-value">MARLENE RIATE</div>
+                            </div>
+                        </div>
+                        <div class="account-row">
+                            <div>
+                                <div class="account-label">Account Number</div>
+                                <div class="account-value" id="bank-number">5218 3556 2365 2157</div>
+                            </div>
+                            <button class="copy-btn" onclick="copyToClipboard('5218355623652157', this)">
+                                <i class="far fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="text-center fade-in" style="margin-top: var(--space-16);">
+                    <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto;">
+                        <i class="fas fa-info-circle"></i> 
+                        For questions about giving, please <a href="contact.html" style="color: var(--primary); font-weight: 500;">contact us</a>.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i> Copied to clipboard!
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="file.png" alt="CBCN Logo">
+                    <p>A place to belong, believe, and become.</p>
+                </div>
+                <div>
+                    <h4>Quick Links</h4>
+                    <div class="footer-links">
+                        <a href="index.html">Home</a>
+                        <a href="about.html">About</a>
+                        <a href="events.html">Events</a>
+                        <a href="contact.html">Contact</a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Connect</h4>
+                    <div class="footer-links">
+                        <a href="https://www.facebook.com/CaloocanBibleChurchNorth" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
+                        <a href="https://www.youtube.com/@caloocanbiblechurchnorth5236" target="_blank"><i class="fab fa-youtube"></i> YouTube</a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Service Times</h4>
+                    <div class="footer-links">
+                        <span>Sunday School: 8:30 AM</span>
+                        <span>Worship: 10:00 AM</span>
+                        <span>Prayer (Fri): 7:00 PM</span>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Caloocan Bible Church North. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show toast
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                
+                // Update button
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.classList.add('copied');
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    btn.innerHTML = '<i class="far fa-copy"></i> Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+    </script>
+</body>
+</html>
