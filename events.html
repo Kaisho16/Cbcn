@@ -545,13 +545,22 @@
         let allEvents = [];
         let currentFilter = 'all';
 
-        // Fetch events from JSON
+        // Fetch events from database API with JSON fallback (for static hosting)
         async function loadEvents() {
             try {
-                const response = await fetch('events.json');
+                const savedApiBase = localStorage.getItem('cbcn_api_base');
+                const apiBase = (savedApiBase || window.location.origin).replace(/\/$/, '');
+
+                let response = await fetch(`${apiBase}/api/events`);
+
+                if (!response.ok) {
+                    response = await fetch('events.json');
+                }
+
                 const data = await response.json();
-                allEvents = data.events;
+                allEvents = Array.isArray(data.events) ? data.events : [];
                 renderEvents();
+                renderCalendar();
             } catch (error) {
                 console.error('Error loading events:', error);
                 upcomingContainer.innerHTML = `
@@ -657,8 +666,6 @@
                 : '<i class="fas fa-history"></i> Show Past Events';
         });
 
-        // Load events on page load
-        loadEvents();
 
         // =====================
         // Calendar Widget
@@ -760,12 +767,7 @@
             renderCalendar();
         });
 
-        // Initialize calendar after events load
-        const originalLoadEvents = loadEvents;
-        loadEvents = async function() {
-            await originalLoadEvents();
-            renderCalendar();
-        };
+        // Initialize data and calendar
         loadEvents();
     </script>
 </body>

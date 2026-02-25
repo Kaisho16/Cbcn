@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBCN Admin Portal</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background: var(--bg-secondary); }
+        .admin-shell { max-width: 1000px; margin: 3rem auto; padding: 0 1rem; }
+        .admin-card { background: var(--white); border-radius: 12px; padding: 1.25rem; box-shadow: var(--shadow-md); border: 1px solid var(--gray-200); }
+        .admin-title { margin-bottom: 1rem; }
+        .admin-grid { display: grid; gap: 1rem; }
+        .admin-grid-2 { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+        @media (max-width: 768px) { .admin-grid-2 { grid-template-columns: 1fr; } }
+        .field { display: grid; gap: .35rem; }
+        .field label { font-size: .9rem; color: var(--text-secondary); }
+        .field input, .field textarea, .field select {
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            padding: .7rem .8rem;
+            width: 100%;
+            font: inherit;
+        }
+        .field textarea { min-height: 90px; resize: vertical; }
+        .toolbar { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+        .event-list { margin-top: 1rem; display: grid; gap: .75rem; }
+        .event-row { border: 1px solid var(--gray-200); border-radius: 10px; padding: .85rem; display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+        .event-row strong { display: block; margin-bottom: .25rem; }
+        .event-row small { color: var(--text-secondary); }
+        .actions { display: flex; gap: .5rem; }
+        .hidden { display: none !important; }
+        .status { min-height: 1.2rem; font-size: .9rem; color: var(--text-secondary); }
+        .status.error { color: #b42318; }
+        .status.success { color: #067647; }
+    </style>
+</head>
+<body>
+    <main class="admin-shell">
+        <section id="loginCard" class="admin-card">
+            <h1 class="admin-title">Admin Login</h1>
+            <p class="status" id="loginStatus">Enter credentials to manage events.</p>
+            <div class="admin-grid">
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" autocomplete="username" placeholder="Admin username">
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" autocomplete="current-password" placeholder="Password">
+                </div>
+                <div class="field">
+                    <label for="apiBase">API Server URL</label>
+                    <input type="text" id="apiBase" placeholder="http://localhost:3000">
+                </div>
+                <button id="loginBtn" class="btn btn-primary">Login</button>
+            </div>
+        </section>
+
+        <section id="adminPanel" class="admin-card hidden" style="margin-top:1rem;">
+            <div class="toolbar">
+                <h2 style="margin:0;">Event Manager</h2>
+                <div>
+                    <span id="adminUserLabel" style="margin-right:.75rem; color:var(--text-secondary);"></span>
+                    <button id="logoutBtn" class="btn btn-secondary btn-sm">Logout</button>
+                </div>
+            </div>
+
+            <p class="status" id="panelStatus"></p>
+
+            <form id="eventForm" class="admin-grid" style="margin-top:.6rem;">
+                <input type="hidden" id="eventId">
+                <div class="admin-grid-2">
+                    <div class="field"><label for="title">Title</label><input id="title" required></div>
+                    <div class="field"><label for="date">Date</label><input id="date" type="date" required></div>
+                </div>
+                <div class="admin-grid-2">
+                    <div class="field"><label for="time">Time</label><input id="time" required placeholder="10:00 AM"></div>
+                    <div class="field"><label for="location">Location</label><input id="location" required></div>
+                </div>
+                <div class="admin-grid-2">
+                    <div class="field">
+                        <label for="category">Category</label>
+                        <select id="category" required>
+                            <option value="celebration">Celebration</option>
+                            <option value="seminar">Seminar</option>
+                            <option value="worship">Worship</option>
+                            <option value="youth">Youth</option>
+                            <option value="children">Children</option>
+                            <option value="fellowship">Fellowship</option>
+                        </select>
+                    </div>
+                    <div class="field"><label for="image">Image filename (optional)</label><input id="image" placeholder="cbcn-family.jpg"></div>
+                </div>
+                <div class="field"><label for="description">Description</label><textarea id="description" required></textarea></div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary" id="saveBtn">Save Event</button>
+                    <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+                </div>
+            </form>
+
+            <hr style="margin:1.25rem 0; border:none; border-top:1px solid var(--gray-200);">
+            <h3 style="margin:0 0 .75rem 0;">Current Events</h3>
+            <div id="eventList" class="event-list"></div>
+        </section>
+    </main>
+
+<script>
+(() => {
+    const TOKEN_KEY = 'cbcn_admin_token';
+    const USER_KEY = 'cbcn_admin_user';
+    const API_BASE_KEY = 'cbcn_api_base';
+
+    const loginCard = document.getElementById('loginCard');
+    const adminPanel = document.getElementById('adminPanel');
+    const loginStatus = document.getElementById('loginStatus');
+    const panelStatus = document.getElementById('panelStatus');
+    const adminUserLabel = document.getElementById('adminUserLabel');
+    const eventList = document.getElementById('eventList');
+
+    const form = document.getElementById('eventForm');
+    const fields = {
+        eventId: document.getElementById('eventId'),
+        title: document.getElementById('title'),
+        date: document.getElementById('date'),
+        time: document.getElementById('time'),
+        location: document.getElementById('location'),
+        category: document.getElementById('category'),
+        image: document.getElementById('image'),
+        description: document.getElementById('description')
+    };
+
+    function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+    function setToken(token) { localStorage.setItem(TOKEN_KEY, token); }
+    function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+
+    function setUser(name) { localStorage.setItem(USER_KEY, name || ''); }
+    function getUser() { return localStorage.getItem(USER_KEY) || ''; }
+    function getApiBase() { return localStorage.getItem(API_BASE_KEY) || window.location.origin; }
+    function setApiBase(value) { localStorage.setItem(API_BASE_KEY, value); }
+    function toApiUrl(path) {
+        const base = getApiBase().replace(/\/$/, '');
+        return `${base}${path}`;
+    }
+
+    function setMessage(el, text, type = '') {
+        el.textContent = text;
+        el.className = `status ${type}`.trim();
+    }
+
+    function setLoggedInState(loggedIn) {
+        loginCard.classList.toggle('hidden', loggedIn);
+        adminPanel.classList.toggle('hidden', !loggedIn);
+        adminUserLabel.textContent = loggedIn ? `Signed in as ${getUser()}` : '';
+    }
+
+    async function api(path, options = {}) {
+        const token = getToken();
+        const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+        if (token) headers.Authorization = `Bearer ${token}`;
+
+        const res = await fetch(toApiUrl(path), { ...options, headers });
+
+        if (res.status === 401) {
+            clearToken();
+            setUser('');
+            setLoggedInState(false);
+            setMessage(loginStatus, 'Session expired. Please login again.', 'error');
+            throw new Error('Unauthorized');
+        }
+
+        if (res.status === 204) return null;
+
+        let data = {};
+        try { data = await res.json(); } catch (_err) { data = {}; }
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+        return data;
+    }
+
+    async function loadEvents() {
+        try {
+            const data = await api('/api/events', { method: 'GET' });
+            const events = Array.isArray(data.events) ? data.events : [];
+
+            if (events.length === 0) {
+                eventList.innerHTML = '<p class="status">No events yet.</p>';
+                return;
+            }
+
+            eventList.innerHTML = events.map((event) => `
+                <article class="event-row">
+                    <div>
+                        <strong>${event.title}</strong>
+                        <small>${event.date} • ${event.time} • ${event.location}</small>
+                        <p style="margin:.4rem 0 0; color:var(--text-secondary);">${event.description}</p>
+                        <small>Category: ${event.category}${event.image ? ` • Image: ${event.image}` : ''}</small>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-secondary btn-sm" data-action="edit" data-id="${event.id}">Edit</button>
+                        <button class="btn btn-secondary btn-sm" data-action="delete" data-id="${event.id}">Delete</button>
+                    </div>
+                </article>
+            `).join('');
+        } catch (err) {
+            setMessage(panelStatus, err.message, 'error');
+        }
+    }
+
+    function clearForm() {
+        fields.eventId.value = '';
+        fields.title.value = '';
+        fields.date.value = '';
+        fields.time.value = '';
+        fields.location.value = '';
+        fields.category.value = 'celebration';
+        fields.image.value = '';
+        fields.description.value = '';
+        document.getElementById('saveBtn').textContent = 'Save Event';
+    }
+
+    async function loadEventIntoForm(id) {
+        const data = await api('/api/events', { method: 'GET' });
+        const events = Array.isArray(data.events) ? data.events : [];
+        const event = events.find((e) => String(e.id) === String(id));
+        if (!event) {
+            setMessage(panelStatus, 'Event not found.', 'error');
+            return;
+        }
+
+        fields.eventId.value = event.id;
+        fields.title.value = event.title;
+        fields.date.value = event.date;
+        fields.time.value = event.time;
+        fields.location.value = event.location;
+        fields.category.value = event.category;
+        fields.image.value = event.image || '';
+        fields.description.value = event.description;
+        document.getElementById('saveBtn').textContent = 'Update Event';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const apiBaseInput = document.getElementById('apiBase').value.trim();
+        const normalizedApiBase = (apiBaseInput || window.location.origin).replace(/\/$/, '');
+        setApiBase(normalizedApiBase);
+
+        try {
+            const data = await fetch(`${normalizedApiBase}/api/admin/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            }).then(async (res) => {
+                const json = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(json.error || 'Login failed');
+                return json;
+            });
+
+            setToken(data.token);
+            setUser(data.username);
+            setLoggedInState(true);
+            setMessage(panelStatus, 'Login successful.', 'success');
+            await loadEvents();
+        } catch (err) {
+            setMessage(loginStatus, `${err.message}. If using VS Code Live Server, set API Server URL to your Node server (e.g. http://localhost:3000).`, 'error');
+        }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+            await api('/api/admin/logout', { method: 'POST' });
+        } catch (_err) {
+            // no-op
+        }
+        clearToken();
+        setUser('');
+        setLoggedInState(false);
+        setMessage(loginStatus, 'Logged out.', 'success');
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const payload = {
+            title: fields.title.value.trim(),
+            date: fields.date.value,
+            time: fields.time.value.trim(),
+            location: fields.location.value.trim(),
+            category: fields.category.value,
+            image: fields.image.value.trim() || null,
+            description: fields.description.value.trim()
+        };
+
+        const id = fields.eventId.value;
+
+        try {
+            if (id) {
+                await api(`/api/events/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+                setMessage(panelStatus, 'Event updated.', 'success');
+            } else {
+                await api('/api/events', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                setMessage(panelStatus, 'Event created.', 'success');
+            }
+            clearForm();
+            await loadEvents();
+        } catch (err) {
+            setMessage(panelStatus, err.message, 'error');
+        }
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', clearForm);
+
+    eventList.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+
+        if (action === 'edit') {
+            await loadEventIntoForm(id);
+            return;
+        }
+
+        if (action === 'delete') {
+            const ok = window.confirm('Delete this event?');
+            if (!ok) return;
+
+            try {
+                await api(`/api/events/${id}`, { method: 'DELETE' });
+                setMessage(panelStatus, 'Event deleted.', 'success');
+                await loadEvents();
+            } catch (err) {
+                setMessage(panelStatus, err.message, 'error');
+            }
+        }
+    });
+
+    (async function bootstrap() {
+        document.getElementById('apiBase').value = getApiBase();
+
+        if (!getToken()) {
+            setLoggedInState(false);
+            return;
+        }
+
+        setLoggedInState(true);
+        try {
+            await loadEvents();
+            setMessage(panelStatus, 'Session restored.', 'success');
+        } catch (_err) {
+            setLoggedInState(false);
+        }
+    })();
+})();
+</script>
+</body>
+</html>
