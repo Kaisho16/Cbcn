@@ -548,7 +548,10 @@
         // Fetch events from database API with JSON fallback (for static hosting)
         async function loadEvents() {
             try {
-                let response = await fetch('/api/events');
+                const savedApiBase = localStorage.getItem('cbcn_api_base');
+                const apiBase = (savedApiBase || window.location.origin).replace(/\/$/, '');
+
+                let response = await fetch(`${apiBase}/api/events`);
 
                 if (!response.ok) {
                     response = await fetch('events.json');

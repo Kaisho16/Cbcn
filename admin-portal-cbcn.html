@@ -50,6 +50,10 @@
                     <label for="password">Password</label>
                     <input type="password" id="password" autocomplete="current-password" placeholder="Password">
                 </div>
+                <div class="field">
+                    <label for="apiBase">API Server URL</label>
+                    <input type="text" id="apiBase" placeholder="http://localhost:3000">
+                </div>
                 <button id="loginBtn" class="btn btn-primary">Login</button>
             </div>
         </section>
@@ -107,6 +111,7 @@
 (() => {
     const TOKEN_KEY = 'cbcn_admin_token';
     const USER_KEY = 'cbcn_admin_user';
+    const API_BASE_KEY = 'cbcn_api_base';
 
     const loginCard = document.getElementById('loginCard');
     const adminPanel = document.getElementById('adminPanel');
@@ -133,6 +138,12 @@
 
     function setUser(name) { localStorage.setItem(USER_KEY, name || ''); }
     function getUser() { return localStorage.getItem(USER_KEY) || ''; }
+    function getApiBase() { return localStorage.getItem(API_BASE_KEY) || window.location.origin; }
+    function setApiBase(value) { localStorage.setItem(API_BASE_KEY, value); }
+    function toApiUrl(path) {
+        const base = getApiBase().replace(/\/$/, '');
+        return `${base}${path}`;
+    }
 
     function setMessage(el, text, type = '') {
         el.textContent = text;
@@ -150,7 +161,7 @@
         const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
         if (token) headers.Authorization = `Bearer ${token}`;
 
-        const res = await fetch(path, { ...options, headers });
+        const res = await fetch(toApiUrl(path), { ...options, headers });
 
         if (res.status === 401) {
             clearToken();
@@ -233,9 +244,12 @@
     document.getElementById('loginBtn').addEventListener('click', async () => {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
+        const apiBaseInput = document.getElementById('apiBase').value.trim();
+        const normalizedApiBase = (apiBaseInput || window.location.origin).replace(/\/$/, '');
+        setApiBase(normalizedApiBase);
 
         try {
-            const data = await fetch('/api/admin/login', {
+            const data = await fetch(`${normalizedApiBase}/api/admin/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -251,7 +265,7 @@
             setMessage(panelStatus, 'Login successful.', 'success');
             await loadEvents();
         } catch (err) {
-            setMessage(loginStatus, err.message, 'error');
+            setMessage(loginStatus, `${err.message}. If using VS Code Live Server, set API Server URL to your Node server (e.g. http://localhost:3000).`, 'error');
         }
     });
 
@@ -332,6 +346,8 @@
     });
 
     (async function bootstrap() {
+        document.getElementById('apiBase').value = getApiBase();
+
         if (!getToken()) {
             setLoggedInState(false);
             return;
