@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
@@ -8,6 +9,11 @@ const PORT = process.env.PORT || 3000;
 const DB_DIR = path.join(__dirname, 'data');
 const DB_PATH = path.join(DB_DIR, 'events.db');
 const EVENTS_JSON_PATH = path.join(__dirname, 'events.json');
+
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'cbcnadmin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ChangeMeCBCN!';
+const SESSION_TTL_MS = 1000 * 60 * 60 * 8;
+const activeSessions = new Map();
 
 if (!fs.existsSync(DB_DIR)) {
   fs.mkdirSync(DB_DIR, { recursive: true });
@@ -91,8 +97,70 @@ async function seedFromJsonIfNeeded() {
   }
 }
 
+function createSessionToken() {
+  return crypto.randomBytes(24).toString('hex');
+}
+
+function clearExpiredSessions() {
+  const now = Date.now();
+  for (const [token, session] of activeSessions.entries()) {
+    if (session.expiresAt <= now) {
+      activeSessions.delete(token);
+    }
+  }
+}
+
+function requireAdminAuth(req, res, next) {
+  clearExpiredSessions();
+  const authHeader = req.get('Authorization') || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+
+  if (!token || !activeSessions.has(token)) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  const session = activeSessions.get(token);
+  if (session.expiresAt <= Date.now()) {
+    activeSessions.delete(token);
+    res.status(401).json({ error: 'Session expired' });
+    return;
+  }
+
+  req.adminUser = session.username;
+  next();
+}
+
 app.use(express.json());
 app.use(express.static(__dirname));
+
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body || {};
+
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    res.status(401).json({ error: 'Invalid credentials' });
+    return;
+  }
+
+  const token = createSessionToken();
+  activeSessions.set(token, {
+    username,
+    expiresAt: Date.now() + SESSION_TTL_MS
+  });
+
+  res.json({
+    token,
+    expiresInMs: SESSION_TTL_MS,
+    username
+  });
+});
+
+app.post('/api/admin/logout', requireAdminAuth, (req, res) => {
+  const authHeader = req.get('Authorization') || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  activeSessions.delete(token);
+  res.status(204).end();
+});
 
 app.get('/api/events', async (_req, res) => {
   try {
@@ -104,7 +172,7 @@ app.get('/api/events', async (_req, res) => {
   }
 });
 
-app.post('/api/events', async (req, res) => {
+app.post('/api/events', requireAdminAuth, async (req, res) => {
   const { title, date, time, location, description, category, image = null } = req.body;
 
   if (!title || !date || !time || !location || !description || !category) {
@@ -129,7 +197,7 @@ app.post('/api/events', async (req, res) => {
   }
 });
 
-app.put('/api/events/:id', async (req, res) => {
+app.put('/api/events/:id', requireAdminAuth, async (req, res) => {
   const { id } = req.params;
   const { title, date, time, location, description, category, image = null } = req.body;
 
@@ -162,7 +230,7 @@ app.put('/api/events/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/events/:id', async (req, res) => {
+app.delete('/api/events/:id', requireAdminAuth, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -184,6 +252,7 @@ seedFromJsonIfNeeded()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`CBCN site running on http://localhost:${PORT}`);
+      console.log('Admin login URL: /admin-portal-cbcn.html');
     });
   })
   .catch((error) => {
